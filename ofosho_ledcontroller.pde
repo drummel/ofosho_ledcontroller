@@ -4,12 +4,23 @@
 
 OPC opc;
 PImage dot;
+SimWindow simulation_window;
 
 Shapes shapes;
+boolean window_location_set = false;
+final int screen_width = 640;
+final int screen_height = 360;
+
+void settings() {
+  size(screen_width, screen_height);
+}
 
 void setup()
 {
-  size(640, 360);
+  String[] args = {"TwoFrameTest"};
+  simulation_window = new SimWindow();
+  PApplet.runSketch(args, simulation_window);
+
   
   // This is commented out as it's not normally supposed to be run. We add it in here just for convenience because
   // Processing makes it harder to make multiple application entry points. If it's uncommented, it just generates
@@ -32,6 +43,10 @@ void setup()
 void draw()
 {
   background(0);
+  if(!window_location_set) {
+    surface.setLocation(0,200);
+    window_location_set = true;
+  }
 
   // Draw the image, centered at the mouse location
   float dotSize = height * 0.7;
