@@ -1,43 +1,22 @@
 import java.awt.Color;
 
-HashMap<String, Effect> effects;
-void initEffects(PApplet window)
+List<Effect> initEffects(EffectUtils utils)
 {
-  Class<?>[] effect_classes = {
-    MouseDot.class,
-    Rainbow.class,
-  };
-  effects = new HashMap<String, Effect>();
-  
-  /*
-  for(Class<?> clazz : effect_classes) {
-    println(clazz.getName());
-    Constructor<Effect> cons = (Constructor<Effect>)clazz.getConstructors()[0]; //(new Class[]{ PApplet.class });
-    Effect effect = (Effect)cons.newInstance(window);
-    effects.put(clazz.getName(), effect);
-  }
-  System.exit(1);
-  */
-  
-  effects.put("MouseDot", new MouseDot(window));
-  effects.put("Rainbow", new Rainbow(window));
+  List<Effect> effects = new ArrayList<Effect>();
+  effects.add(new Rainbow(utils));
+  effects.add(new MouseDot(utils));
+  return effects;
 }
 
-public abstract class Effect {
-  PApplet window;
-  int frame_num;
-  Effect(PApplet window)
+interface IEffect {
+  void render();
+}
+
+public abstract class Effect implements IEffect {
+  EffectUtils utils;
+  Effect(EffectUtils utils)
   {
-    this.window = window;
-    this.frame_num = 0; 
-  }
-  
-  void render(int frame_num)
-  {
-  }
-  
-  void setPixel(int x, int y, color col) {
-    window.pixels[y * CANVAS_WIDTH + x] = col;
+    this.utils = utils; 
   }
 }
 
@@ -45,20 +24,20 @@ public abstract class Effect {
 public class Rainbow extends Effect {
   PImage dot;
     
-  Rainbow(PApplet window)
+  Rainbow(EffectUtils utils)
   {
-    super(window);
+    super(utils);
   }
   
-  void render(int frame_num) {
-    window.loadPixels();
+  void render() {
+    utils.loadPixels();
     for(int x = 0; x < CANVAS_WIDTH; x++) {
-      color col = Color.HSBtoRGB(((frame_num + x) & 0xFF) / 255.0, 1.0, 1.0);
+      color col = Color.HSBtoRGB(((utils.frame_num + x) & 0xFF) / 255.0, 1.0, 1.0);
       for(int y = 0; y < CANVAS_HEIGHT; y++) {
-        setPixel(x, y, col);
+        utils.setPixel(x, y, col);
       }
     }
-    window.updatePixels();
+    utils.updatePixels();
   }
 }
 
@@ -66,15 +45,21 @@ public class Rainbow extends Effect {
 public class MouseDot extends Effect {
   PImage dot;
   
-  MouseDot(PApplet window) {
-    super(window);
+  MouseDot(EffectUtils utils) {
+    super(utils);
     // Load a sample image
     dot = loadImage("dot.png");
   }
   
-  void render(int frame_num) {
+  void render() {
+    utils.clearScreen();
     // Draw the image, centered at the mouse location
     float dotSize = CANVAS_HEIGHT * 0.7;
-    window.image(dot, window.mouseX - dotSize/2, window.mouseY - dotSize/2, dotSize, dotSize);
+    utils.window.image(
+      dot,
+      utils.window.mouseX - dotSize/2,
+      utils.window.mouseY - dotSize/2, dotSize,
+      dotSize
+    );
   }
 }

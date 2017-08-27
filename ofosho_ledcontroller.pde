@@ -37,3 +37,7 @@ void draw()
 
   effect_controller.renderEffects();
 }
+
+void mousePressed() {
+  effect_controller.cycleToNextEffect();
+}

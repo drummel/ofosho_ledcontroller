@@ -6,8 +6,11 @@ public class EffectController {
   Shapes shapes;
   OPC opc;
   Simulation simulation = null;
-  String current_effect = null;
   int frame_num = 0;
+  List<Effect> effects;
+  Iterator<Effect> effect_iterator;
+  Effect current_effect = null;
+  EffectUtils effect_utils;
   
   EffectController(PApplet main_window)
   {
@@ -18,8 +21,10 @@ public class EffectController {
     shapes = (new InitShapes()).initializeShapes(opc);
     plastic_mask = new PlasticMask(shapes);
     
-    initEffects(this.main_window);
-    current_effect = "Rainbow";
+    effect_utils = new EffectUtils(this.main_window);
+    effects = initEffects(effect_utils);
+    effect_iterator = effects.iterator();
+    cycleToNextEffect();
     
     if (SIMULATION_ENABLED) {
       simulation = new Simulation(shapes, plastic_mask);
@@ -27,13 +32,18 @@ public class EffectController {
     }
   }
   
+  public void cycleToNextEffect()
+  {
+    if (!effect_iterator.hasNext()) {
+      effect_iterator = effects.iterator();
+    }
+    current_effect = effect_iterator.next();
+  }
+  
   public void renderEffects()
   {
-    frame_num++;
-    main_window.background(0);
-    Effect effect = effects.get(current_effect);
-    
-    effect.render(frame_num);
+    effect_utils.incrementFrameNum();    
+    current_effect.render();
     updateLedColors();
     showPlasticMask();
   }
@@ -55,5 +65,35 @@ public class EffectController {
       0, 0, CANVAS_WIDTH, CANVAS_HEIGHT,
       ADD
     );
+  }
+}
+
+
+public class EffectUtils {
+  PApplet window;
+  int frame_num;
+  EffectUtils(PApplet window)
+  {
+    this.window = window;
+    this.frame_num = 0; 
+  }
+  
+  void incrementFrameNum() {
+    frame_num++;
+  }
+  
+  void clearScreen() {
+    window.background(0); 
+  }
+  
+  void loadPixels() {
+    window.loadPixels();
+  }
+  void updatePixels() {
+    window.updatePixels();
+  }
+  
+  void setPixel(int x, int y, color col) {
+    window.pixels[y * CANVAS_WIDTH + x] = col;
   }
 }
