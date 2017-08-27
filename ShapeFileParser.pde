@@ -56,6 +56,7 @@ public class ShapeFileParser {
       float world_y = json_shape.getFloat("world_y");
       float rotation = json_shape.getFloat("rotation");
       int opc_index_base = json_shape.getInt("opc_index_base");
+      String grid = json_shape.getString("grid");
       JSONArray json_leds = json_shape.getJSONArray("leds");
       List leds = parseLeds(json_leds, opc_index_base);
 
@@ -64,6 +65,13 @@ public class ShapeFileParser {
       shape.world_offset = new PVector(world_x, world_y);
       shape.rotation = rotation;
       shape.leds = leds;
+      shape.grid = new boolean[GRID_HEIGHT][GRID_WIDTH];
+      int i = 0;
+      for(int y = 0; y < GRID_HEIGHT; y++) {
+        for(int x = 0; x < GRID_WIDTH; x++) {
+          shape.grid[y][x] = (grid.charAt(i++) == 'X');
+        }
+      }
       return shape;
   }
   /**
@@ -81,6 +89,7 @@ public class ShapeFileParser {
         LedPixel pixel = new LedPixel();
         pixel.shape_position = new PVector(led_x, led_y);
         pixel.opc_index = opc_index_base + i;
+        pixel.col = 0;
         leds.add(pixel);
       } catch (Exception e) {
         throw new ShapeParseException("Error parsing LED index: " + i, e);

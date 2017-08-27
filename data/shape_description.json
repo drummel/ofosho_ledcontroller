@@ -4,6 +4,7 @@
       "world_x": 0,
       "world_y": 0,
       "opc_index_base": 0,
+      "grid": "XXXX_XX_XX_XXXX",
       "letter": "O",
       "rotation": 0,
       "leds": [
@@ -61,6 +62,7 @@
       "world_x": 38.400001525878906,
       "world_y": 0,
       "opc_index_base": 64,
+      "grid": "X__X__XXXX__XXX",
       "letter": "F",
       "rotation": 0,
       "leds": [
@@ -106,6 +108,7 @@
       "world_x": 76.80000305175781,
       "world_y": 0,
       "opc_index_base": 128,
+      "grid": "XXXX_XX_XX_XXXX",
       "letter": "O",
       "rotation": 0,
       "leds": [
@@ -163,6 +166,7 @@
       "world_x": 115.20000457763672,
       "world_y": 0,
       "opc_index_base": 192,
+      "grid": "XXX__XXXXX__XXX",
       "letter": "S",
       "rotation": 0,
       "leds": [
@@ -224,6 +228,7 @@
       "world_x": 153.60000610351562,
       "world_y": 0,
       "opc_index_base": 256,
+      "grid": "X_XX_XXXXX_XX_X",
       "letter": "H",
       "rotation": 0,
       "leds": [
@@ -277,6 +282,7 @@
       "world_x": 192,
       "world_y": 0,
       "opc_index_base": 320,
+      "grid": "XXXX_XX_XX_XXXX",
       "letter": "O",
       "rotation": 0,
       "leds": [

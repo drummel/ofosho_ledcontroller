@@ -5,6 +5,16 @@
  * setup() function.
  */
  
+// Call this from setup() to generate the file and then immediately exit.
+void genShapeFile()
+{
+  String output_filename = "data/shape_description_new.json";
+  (new ShapeFileGenerator()).genFile(output_filename);
+  println("Successfully generated shape definition file: " + output_filename);
+  System.exit(1);
+} 
+
+ 
 public class ShapeFileGenerator {
   public void genFile(String output_filename) {
     Shapes shapes = genShapes();
@@ -18,7 +28,7 @@ public class ShapeFileGenerator {
     shapes.scale = 0.9;
     shapes.shapes = new ArrayList();
     
-    float horizontal_spacing = 9.6 * 4; // Space between the bottom left edges of the letters, in inches
+    float horizontal_spacing = BLOCK_SIZE * 4; // Space between the bottom left edges of the letters, in inches
     String letters = "OFOSHO";
     float world_x = 0.0;
     
@@ -32,6 +42,7 @@ public class ShapeFileGenerator {
           builder.setLineBySubBlock(new PVector(0,4), new PVector(2, 4), 3, false, true);          // Top
           builder.setLineBySubBlock(new PVector(2,4), new PVector(2, 0), 5, false, true);          // Right
           builder.setLineBySubBlock(new PVector(2,0), new PVector(0, 0), 3, false, false);         // Bottom
+          builder.setGrid("XXX X_X X_X X_X XXX");
           break;
           
         case 'F':
@@ -39,6 +50,7 @@ public class ShapeFileGenerator {
           builder.setLineBySubBlock(new PVector(0,2), new PVector(2, 2), 3, false, true);
           builder.setLineBySubBlock(new PVector(0,2), new PVector(0, 4), 3, false, true);
           builder.setLineBySubBlock(new PVector(0,4), new PVector(2, 4), 3, false, true);
+          builder.setGrid("XXX X__ XXX X__ X__");
           break;
           
         case 'S':
@@ -47,12 +59,14 @@ public class ShapeFileGenerator {
           builder.setLineBySubBlock(new PVector(2,2), new PVector(0, 2), 3, false, true);
           builder.setLineBySubBlock(new PVector(0,2), new PVector(0, 4), 3, false, true);
           builder.setLineBySubBlock(new PVector(0,4), new PVector(2, 4), 3, false, true);
+          builder.setGrid("XXX X__ XXX __X XXX");
           break;
           
         case 'H':
           builder.setLineBySubBlock(new PVector(0,0), new PVector(0, 4), 5, true, true);
           builder.setLineBySubBlock(new PVector(0,2), new PVector(2, 2), 3, false, false);
           builder.setLineBySubBlock(new PVector(2,0), new PVector(2, 4), 5, true, true);
+          builder.setGrid("X_X X_X XXX X_X X_X");
           break;
           
         default:
@@ -128,13 +142,37 @@ public class ShapeBuilder {
    * (the bottom left is 0,0). The LEDs are assumed to be positioned in the center of each block.
    */
   void setLineBySubBlock(PVector start, PVector end, int num_leds, boolean include_first, boolean include_last) {
-    float shape_block_size = 9.6;  // The width/height of a "square" within the 3x5 letter grid
-    PVector center_block = new PVector(shape_block_size / 2, shape_block_size / 2);
-    start.mult(shape_block_size);
-    end.mult(shape_block_size);
+    PVector center_block = new PVector(BLOCK_SIZE / 2, BLOCK_SIZE / 2);
+    start.mult(BLOCK_SIZE);
+    end.mult(BLOCK_SIZE);
     start.add(center_block);
     end.add(center_block);
     setLine(start, end, num_leds, include_first, include_last);
+  }
+  
+  /**
+   * @param g - a string describing the letter grid. It consists of 5 x 3 chars (separated by spaces). X means there is plastic there, _ means
+   * there is nothing. E.g. "XXX _X_ ..." means the top row has 3 blocks of plastic, the next row has an empty space, a block, and an empty space, etc.
+   */
+  void setGrid(String g)
+  {
+    shape.grid = new boolean[GRID_HEIGHT][GRID_WIDTH];
+    int y = GRID_HEIGHT - 1;
+    int x = 0;
+    for(int i = 0; i < g.length(); i++) {
+      if (g.charAt(i) == ' ') {
+        continue;
+      }
+      if(y < 0) {
+        throw new RuntimeException("Too many letters in the grid descriptor!");
+      }
+      shape.grid[y][x] = (g.charAt(i) == 'X');
+      x++;
+      if(x == GRID_WIDTH) {
+        x = 0;
+        y--;
+      }
+    }
   }
 }
 
@@ -167,11 +205,19 @@ public class ShapeFileRenderer {
   protected JSONObject renderShape(Shape shape, int opc_index_base) {
     JSONObject json_shape = new JSONObject();
  
+    String grid = "";
+    for(int y = 0; y < GRID_HEIGHT; y++) {
+      for(int x = 0; x < GRID_WIDTH; x++) {
+        grid += (shape.grid[y][x] ? "X" : "_");
+      }
+    }
+ 
     json_shape.setString("letter", Character.toString(shape.letter));
     json_shape.setFloat("world_x", shape.world_offset.x);
     json_shape.setFloat("world_y", shape.world_offset.y);
     json_shape.setFloat("rotation", shape.rotation);
     json_shape.setInt("opc_index_base", opc_index_base);
+    json_shape.setString("grid", grid);
     
     JSONArray leds = new JSONArray();
     int i = 0;

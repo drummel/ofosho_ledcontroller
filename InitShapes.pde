@@ -35,6 +35,7 @@ public class InitShapes {
   {
     Shapes shapes = loadShapes();
 
+    shapes.world_to_canvas = getWorldToCanvasMatrix(shapes);
     xformLedsToCanvasSpace(shapes);
     
     for(Shape shape: shapes.shapes) {
@@ -65,21 +66,17 @@ public class InitShapes {
     }
   }
 
-  protected void xformLedsToCanvasSpace(Shapes shapes) {
+  protected SimpleMatrix getWorldToCanvasMatrix(Shapes shapes) {
     BoundingBox world_bounding_box = getWorldBoundingBox(shapes);
     float world_width = world_bounding_box.right - world_bounding_box.left;
     float world_height = world_bounding_box.top - world_bounding_box.bottom;
  
-    // Determine scaling factor
-    float canvas_width = (float)width;
-    float canvas_height = (float)height;
-
     // First, work out the scale factor to fit the world box to the width of the canvas.
-    float world_to_canvas_scale = canvas_width / world_width;
+    float world_to_canvas_scale = (float)CANVAS_WIDTH / world_width;
     float new_world_height = world_to_canvas_scale * world_height;
-    if(new_world_height > canvas_height) {
+    if(new_world_height > (float)CANVAS_HEIGHT) {
       // Won't fit inside the canvas this way. Scale it using the vertical height instead.
-      world_to_canvas_scale = canvas_height / world_height;
+      world_to_canvas_scale = (float)CANVAS_HEIGHT / world_height;
     }
     
     // Move the shapes from wherever they are so that the bounding box is centered at the origin.
@@ -93,7 +90,7 @@ public class InitShapes {
     SimpleMatrix squeeze_in_matrix = LinearXforms.scale(shapes.scale, shapes.scale);
     // The world coordinate system is +Y = UP, but canvas is +Y = DOWN, so flip it and shift it.
     SimpleMatrix world_to_canvas_y_axis_flip = LinearXforms.scale(1.0, -1.0);
-    SimpleMatrix world_to_canvas_translate = LinearXforms.translate(canvas_width / 2.0, canvas_height / 2.0);
+    SimpleMatrix world_to_canvas_translate = LinearXforms.translate((float)CANVAS_WIDTH / 2.0, (float)CANVAS_HEIGHT / 2.0);
 
     // Note: these are listed in reverse order in which the xformations will be performed.
     SimpleMatrix world_to_canvas =
@@ -103,15 +100,18 @@ public class InitShapes {
       .mult(world_to_canvas_scale_matrix
       .mult(center_shapes_around_origin
       ))));
-    
+    return world_to_canvas;
+  }
+
+  protected void xformLedsToCanvasSpace(Shapes shapes) {
     for(Shape shape: shapes.shapes) {
       SimpleMatrix shape_to_world = shape.getShapeToWorldMatrix();
-      SimpleMatrix shape_to_canvas = world_to_canvas.mult(shape_to_world);
+      SimpleMatrix shape_to_canvas = shapes.world_to_canvas.mult(shape_to_world);
       for(LedPixel pixel: shape.leds) {
         pixel.canvas_position = LinearXforms.multMatrixByPVector(shape_to_canvas, pixel.shape_position);
-        if (pixel.canvas_position.x >= width || pixel.canvas_position.x < 0) {
+        if (pixel.canvas_position.x >= CANVAS_WIDTH || pixel.canvas_position.x < 0) {
           throw new RuntimeException("Error: pixel x is out of screen bounds");
-        } else if(pixel.canvas_position.y >= height || pixel.canvas_position.y < 0) {
+        } else if(pixel.canvas_position.y >= CANVAS_HEIGHT || pixel.canvas_position.y < 0) {
           throw new RuntimeException("Error: pixel y is out of screen bounds");
         }
       }
@@ -131,10 +131,9 @@ public class InitShapes {
       }
 
       // Also do the same for the 4 corners of the shape.
-      float block_size = 9.6;
-      for(int x = 0; x <= 3; x += 3) {
-        for(int y = 0; y <= 5; y += 5) {   
-          PVector world_coords = LinearXforms.multMatrixByPVector(shape_to_world, new PVector(x * block_size, y * block_size));
+      for(int x = 0; x <= GRID_WIDTH; x += GRID_WIDTH) {
+        for(int y = 0; y <= GRID_HEIGHT; y += GRID_HEIGHT) {   
+          PVector world_coords = LinearXforms.multMatrixByPVector(shape_to_world, new PVector(x * BLOCK_SIZE, y * BLOCK_SIZE));
           bounding_box.addValue(world_coords);
         }
       }
