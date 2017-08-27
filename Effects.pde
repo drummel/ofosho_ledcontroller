@@ -61,5 +61,6 @@ public class MouseDot extends Effect {
       utils.window.mouseY - dotSize/2, dotSize,
       dotSize
     );
+    utils.loadPixels();
   }
 }
