@@ -3,6 +3,7 @@ import java.awt.Color;
 List<IEffect> initEffects(EffectUtils utils)
 {
   List<IEffect> effects = new ArrayList<IEffect>();
+  effects.add(new Plasma(utils));
   effects.add(new Rainbow(utils));
   effects.add(new RotatingRainbow(utils));
   effects.add(new MouseDot(utils));
@@ -13,8 +14,6 @@ interface IEffect {
   void render();
   void postRender();
 }
-
-
 
 
 /**
@@ -68,6 +67,57 @@ public class Rainbow extends CanvasEffect {
     utils.updatePixels();
   }
 }
+
+
+public class Plasma extends CanvasEffect {
+  double[][] plasma1, plasma2;
+  Plasma(EffectUtils utils)
+  {
+    super(utils);
+
+    plasma1 = new double[CANVAS_HEIGHT * 2][CANVAS_WIDTH * 2];
+    plasma2 = new double[CANVAS_HEIGHT * 2][CANVAS_WIDTH * 2];
+    for(int y = 0; y < CANVAS_HEIGHT * 2; y++) {
+      int delta_y = CANVAS_HEIGHT - y;
+      for(int x = 0; x < CANVAS_WIDTH * 2; x++) {
+        int delta_x = CANVAS_WIDTH - x;
+        plasma1[y][x] = 128.0 + 127.0 * Math.cos( Math.hypot(delta_x, delta_y) / 64.0);
+        plasma2[y][x] = 90.0 * Math.sin( Math.hypot(12.0, delta_x, delta_y) ) / 32.0;
+      }
+    }
+  }
+  
+  void render() {
+    utils.loadPixels();
+    float time = (float)utils.frame_num;
+    int sx1 = (CANVAS_WIDTH + (int)( (CANVAS_WIDTH - 2) * Math.sin(time / 137.0))) / 2;
+    int sx2 = (CANVAS_WIDTH + (int)( (CANVAS_WIDTH - 2) * Math.sin(-time / 125.0))) / 2;
+    int sx3 = (CANVAS_WIDTH + (int)( (CANVAS_WIDTH - 2) * Math.sin(-time / 123.0))) / 2;
+    int y1 = (CANVAS_HEIGHT + (int)( (CANVAS_HEIGHT - 2) * Math.cos(time / 123.0))) / 2;
+    int y2 = (CANVAS_HEIGHT + (int)( (CANVAS_HEIGHT - 2) * Math.cos(-time / 85.0))) / 2;
+    int y3 = (CANVAS_HEIGHT + (int)( (CANVAS_HEIGHT - 2) * Math.cos(-time / 108.0))) / 2;    
+    
+    for(int y = 0 ; y < CANVAS_HEIGHT; y++) {
+      int x1 = sx1, x2 = sx2, x3 = sx3;
+      for(int x = 0 ; x < CANVAS_WIDTH; x++) {
+        int a = (int)(plasma2[y1][x1] + plasma1[y2][x2] + plasma2[y3][x3]);
+        utils.setPixel(x, y,
+          color(
+            (a << 1) & 0xFF,
+            (a << 2) & 0xFF,
+            (a << 3) & 0xFF
+          )
+         );
+         x1++;
+         x2++;
+         x3++;
+      }
+      y1++; y2++; y3++;
+    }
+    utils.updatePixels();
+  }
+}
+
 
 public class RotatingRainbow extends PointEffect {
   RotatingRainbow(EffectUtils utils)
