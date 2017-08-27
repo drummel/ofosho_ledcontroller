@@ -5,6 +5,7 @@ public static class LinearXforms {
     return SimpleMatrix.identity(3);
   }
 
+  // @param - angle in radians, counter clockwise around origin.
   static SimpleMatrix rotate(float angle) {
     SimpleMatrix m = identity();
     double cosine = Math.cos(angle);

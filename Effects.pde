@@ -1,29 +1,57 @@
 import java.awt.Color;
 
-List<Effect> initEffects(EffectUtils utils)
+List<IEffect> initEffects(EffectUtils utils)
 {
-  List<Effect> effects = new ArrayList<Effect>();
+  List<IEffect> effects = new ArrayList<IEffect>();
   effects.add(new Rainbow(utils));
+  effects.add(new RotatingRainbow(utils));
   effects.add(new MouseDot(utils));
   return effects;
 }
 
 interface IEffect {
   void render();
+  void postRender();
 }
 
-public abstract class Effect implements IEffect {
+
+
+
+/**
+ * A Canvas effect is where the effect draws all over the canvas, and then the LED color values are sampled
+ * from certain points on the canvas. (Contrast with PointEffect where each LED's color is explicitly calculated).
+ */
+public abstract class CanvasEffect implements IEffect {
   EffectUtils utils;
-  Effect(EffectUtils utils)
+  CanvasEffect(EffectUtils utils)
   {
     this.utils = utils; 
   }
+  
+  void postRender() {
+    // Update each LEDs record of which color it is currently displaying.
+    for(LedPixel led_pixel: utils.leds) {
+      led_pixel.col = utils.window.pixels[(int)led_pixel.canvas_position.y * CANVAS_WIDTH + (int)led_pixel.canvas_position.x];
+    } 
+  }
+}
+
+/**
+ * A PointEffect's render() loop just calculates and sets each LED's color explicitly.
+ */
+public abstract class PointEffect implements IEffect {
+  EffectUtils utils;
+  PointEffect(EffectUtils utils)
+  {
+    this.utils = utils; 
+  }
+  
+  void postRender() {}
 }
 
 
-public class Rainbow extends Effect {
-  PImage dot;
-    
+
+public class Rainbow extends CanvasEffect {
   Rainbow(EffectUtils utils)
   {
     super(utils);
@@ -41,8 +69,28 @@ public class Rainbow extends Effect {
   }
 }
 
+public class RotatingRainbow extends PointEffect {
+  RotatingRainbow(EffectUtils utils)
+  {
+    super(utils);
+  }
+  
+  void render() {
+    float angle = (float)Math.PI * 2.0 * (utils.frame_num / 500.0);
+    SimpleMatrix xform =
+        LinearXforms.rotate(angle)
+        .mult(LinearXforms.translate(-CANVAS_WIDTH / 2.0, -CANVAS_HEIGHT / 2.0)
+        );
+        
+    for(LedPixel led_pixel : utils.leds) {
+      PVector new_pos = LinearXforms.multMatrixByPVector(xform, led_pixel.canvas_position);
+      led_pixel.col = Color.HSBtoRGB(((int)(utils.frame_num + new_pos.x) & 0xFF) / 255.0, 1.0, 1.0);
+    }
+  }
+}
 
-public class MouseDot extends Effect {
+
+public class MouseDot extends CanvasEffect {
   PImage dot;
   
   MouseDot(EffectUtils utils) {

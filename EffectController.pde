@@ -7,9 +7,9 @@ public class EffectController {
   OPC opc;
   Simulation simulation = null;
   int frame_num = 0;
-  List<Effect> effects;
-  Iterator<Effect> effect_iterator;
-  Effect current_effect = null;
+  List<IEffect> effects;
+  Iterator<IEffect> effect_iterator;
+  IEffect current_effect = null;
   EffectUtils effect_utils;
   
   EffectController(PApplet main_window)
@@ -21,7 +21,7 @@ public class EffectController {
     shapes = (new InitShapes()).initializeShapes(opc);
     plastic_mask = new PlasticMask(shapes);
     
-    effect_utils = new EffectUtils(this.main_window);
+    effect_utils = new EffectUtils(this.main_window, shapes);
     effects = initEffects(effect_utils);
     effect_iterator = effects.iterator();
     cycleToNextEffect();
@@ -37,6 +37,7 @@ public class EffectController {
     if (!effect_iterator.hasNext()) {
       effect_iterator = effects.iterator();
     }
+    main_window.background(0);
     current_effect = effect_iterator.next();
   }
   
@@ -44,19 +45,10 @@ public class EffectController {
   {
     effect_utils.incrementFrameNum();    
     current_effect.render();
-    updateLedColors();
+    current_effect.postRender();
     showPlasticMask();
   }
-  
-  // Update each LEDs record of which color it is currently displaying.
-  protected void updateLedColors()
-  {
-    for(Shape shape: shapes.shapes) {
-      for(LedPixel led_pixel: shape.leds) {
-        led_pixel.col = main_window.pixels[(int)led_pixel.canvas_position.y * CANVAS_WIDTH + (int)led_pixel.canvas_position.x];
-      }
-    }
-  }
+
   
   // Faintly show the plastic outline.
   protected void showPlasticMask() {
@@ -72,10 +64,21 @@ public class EffectController {
 public class EffectUtils {
   PApplet window;
   int frame_num;
-  EffectUtils(PApplet window)
+  List<LedPixel> leds;
+  Shapes shapes;
+  
+  EffectUtils(PApplet window, Shapes shapes)
   {
     this.window = window;
-    this.frame_num = 0; 
+    this.frame_num = 0;
+    this.shapes = shapes;
+    
+    leds = new ArrayList<LedPixel>();
+    for(Shape shape : shapes.shapes) {
+      for(LedPixel p: shape.leds) {
+        leds.add(p);
+      }
+    }
   }
   
   void incrementFrameNum() {
