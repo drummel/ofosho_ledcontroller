@@ -1,11 +1,14 @@
+import java.lang.reflect.*;
+
 public class EffectController {
   PApplet main_window;
   PlasticMask plastic_mask;
   Shapes shapes;
   OPC opc;
-  PImage dot;
   Simulation simulation = null;
-    
+  String current_effect = null;
+  int frame_num = 0;
+  
   EffectController(PApplet main_window)
   {
     this.main_window = main_window;
@@ -14,10 +17,10 @@ public class EffectController {
     opc = new OPC(this.main_window, FADECANDY_HOST, FADECANDY_PORT);
     shapes = (new InitShapes()).initializeShapes(opc);
     plastic_mask = new PlasticMask(shapes);
-  
-    // Load a sample image
-    dot = loadImage("dot.png");
-  
+    
+    initEffects(this.main_window);
+    current_effect = "Rainbow";
+    
     if (SIMULATION_ENABLED) {
       simulation = new Simulation(shapes, plastic_mask);
       simulation.start();
@@ -26,13 +29,11 @@ public class EffectController {
   
   public void renderEffects()
   {
+    frame_num++;
     main_window.background(0);
+    Effect effect = effects.get(current_effect);
     
-    // Draw the image, centered at the mouse location
-    float dotSize = CANVAS_HEIGHT * 0.7;
-    main_window.image(dot, mouseX - dotSize/2, mouseY - dotSize/2, dotSize, dotSize);
-    
-    main_window.loadPixels();
+    effect.render(frame_num);
     updateLedColors();
     showPlasticMask();
   }

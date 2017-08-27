@@ -54,7 +54,7 @@ public class ShapeFileGenerator {
           break;
           
         case 'S':
-          builder.setLineBySubBlock(new PVector(0,0), new PVector(2, 0), 5, true, true);
+          builder.setLineBySubBlock(new PVector(0,0), new PVector(2, 0), 3, true, true);
           builder.setLineBySubBlock(new PVector(2,0), new PVector(2, 2), 3, false, true);
           builder.setLineBySubBlock(new PVector(2,2), new PVector(0, 2), 3, false, true);
           builder.setLineBySubBlock(new PVector(0,2), new PVector(0, 4), 3, false, true);
