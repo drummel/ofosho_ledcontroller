@@ -6,6 +6,7 @@ List<IEffect> initEffects(EffectUtils utils)
   Fire fire = new Fire();
   
   List<IEffect> effects = new ArrayList<IEffect>();
+  effects.add(new BlobEffect(utils));
   effects.add(new FireCanvasEffect(utils, fire));
   effects.add(new FirePointEffect(utils, fire));
   effects.add(new BulbChaser(utils));
@@ -173,7 +174,6 @@ public class MouseDot extends CanvasEffect {
   
   MouseDot(EffectUtils utils) {
     super(utils);
-    // Load a sample image
     dot = loadImage("dot.png");
   }
   
@@ -184,9 +184,56 @@ public class MouseDot extends CanvasEffect {
     utils.window.image(
       dot,
       utils.window.mouseX - dotSize/2,
-      utils.window.mouseY - dotSize/2, dotSize,
+      utils.window.mouseY - dotSize/2,
+      dotSize,
       dotSize
     );
+    utils.loadPixels();
+  }  
+}
+
+
+public class BlobEffect extends CanvasEffect {
+  PImage dot;
+  protected PVector[] ball_coeffs;
+  
+  BlobEffect(EffectUtils utils) {
+    super(utils);
+    dot = loadImage("dot.png");
+    
+    ball_coeffs = new PVector[16];
+    for(int i = 0; i < ball_coeffs.length; i++) {
+      ball_coeffs[i] = new PVector(
+        (float)(1 / (55 + Math.random() * 50)),
+        (float)(1 / (45 + Math.random() * 50)),
+        (float)(1 / (85 + Math.random() * 150))
+        );
+    }
+  }
+  
+  void render() {
+    utils.clearScreen();
+    float dotSize = CANVAS_HEIGHT * 0.7;
+    float time = (float)utils.frame_num;
+    for(PVector ball_coeff : ball_coeffs) {
+      int ball_x = (int)(
+          (
+            CANVAS_WIDTH + (CANVAS_WIDTH - 2) * Math.sin(time * ball_coeff.x)
+          ) * 0.5
+      );
+      int ball_y = (int)(
+          (
+            CANVAS_HEIGHT + (CANVAS_HEIGHT - 2) * Math.cos(time * ball_coeff.y)
+          ) * 0.5
+      );
+      float dot_size = (float)(dot.width * 0.7 * (1.0 + Math.sin(time * ball_coeff.z)) * 0.5);
+      utils.window.blend(
+        dot, 0, 0, dot.width, dot.height,
+        (int)(ball_x - dotSize / 2),
+        (int)(ball_y - dotSize / 2),
+        (int)dotSize, (int)dotSize,
+        MULTIPLY);
+    }
     utils.loadPixels();
   }
 }

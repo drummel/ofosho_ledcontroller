@@ -46,7 +46,7 @@ public class Fire {
   color getColorAtXY(int x, int y) {
     int fx = (int)(x * FIRE_WIDTH / CANVAS_WIDTH);
     int fy = (int)(y * FIRE_HEIGHT / CANVAS_HEIGHT);
-    return palette[(int)intensity[y][x]];
+    return palette[(int)intensity[fy][fx]];
   }
 }
 
