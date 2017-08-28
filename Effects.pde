@@ -3,6 +3,7 @@ import java.awt.Color;
 List<IEffect> initEffects(EffectUtils utils)
 {
   List<IEffect> effects = new ArrayList<IEffect>();
+  effects.add(new LetterWriter(utils));
   effects.add(new PlasmaPointEffect(utils));
   effects.add(new PlasmaCanvasEffect(utils));
   effects.add(new Rainbow(utils));
@@ -12,6 +13,7 @@ List<IEffect> initEffects(EffectUtils utils)
 }
 
 interface IEffect {
+  void reset();
   void render();
   void postRender();
 }
@@ -28,6 +30,7 @@ public abstract class CanvasEffect implements IEffect {
     this.utils = utils; 
   }
   
+  void reset() {}
   void postRender() {
     // Update each LEDs record of which color it is currently displaying.
     for(LedPixel led_pixel: utils.leds) {
@@ -46,7 +49,32 @@ public abstract class PointEffect implements IEffect {
     this.utils = utils; 
   }
   
+  void reset() {}
   void postRender() {}
+}
+
+
+public class LetterWriter extends PointEffect {
+  int offset;
+  LetterWriter(EffectUtils utils)
+  {
+    super(utils);
+    offset = utils.leds.size() * 2;
+  }
+  
+  void render() {
+    offset = (offset + 1) % (utils.leds.size() * 2);
+    
+    int i = offset;
+    for(LedPixel led_pixel : utils.leds) {
+      if (i <= 0 || i > utils.leds.size()) {
+        led_pixel.col = color(0);
+      } else {
+        led_pixel.col = Color.HSBtoRGB((float)(i + utils.frame_num) / 255.0, 1.0, 1.0);
+      }
+      i--;
+    }
+  }
 }
 
 
