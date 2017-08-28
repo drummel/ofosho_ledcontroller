@@ -232,7 +232,7 @@ public class BlobEffect extends CanvasEffect {
         (int)(ball_x - dotSize / 2),
         (int)(ball_y - dotSize / 2),
         (int)dotSize, (int)dotSize,
-        MULTIPLY);
+        SCREEN);
     }
     utils.loadPixels();
   }

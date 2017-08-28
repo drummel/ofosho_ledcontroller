@@ -43,7 +43,11 @@ public class EffectController {
   
   public void renderEffects()
   {
-    effect_utils.incrementFrameNum();    
+    effect_utils.incrementFrameNum();
+    int effect_duration_s = 30;
+    if (effect_utils.frame_num % (60 * effect_duration_s) == 0) {
+      cycleToNextEffect();
+    }
     current_effect.render();
     current_effect.postRender();
     showPlasticMask();
