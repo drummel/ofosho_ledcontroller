@@ -3,6 +3,7 @@ import java.awt.Color;
 List<IEffect> initEffects(EffectUtils utils)
 {
   List<IEffect> effects = new ArrayList<IEffect>();
+  effects.add(new BulbChaser(utils));
   effects.add(new LetterWriter(utils));
   effects.add(new PlasmaPointEffect(utils));
   effects.add(new PlasmaCanvasEffect(utils));
@@ -56,15 +57,19 @@ public abstract class PointEffect implements IEffect {
 
 public class LetterWriter extends PointEffect {
   int offset;
+  int frame_delay;
   LetterWriter(EffectUtils utils)
   {
     super(utils);
     offset = utils.leds.size() * 2;
+    frame_delay = 0;
   }
   
   void render() {
-    offset = (offset + 1) % (utils.leds.size() * 2);
-    
+    frame_delay = (frame_delay + 1) % 3;
+    if (frame_delay == 0) {
+      offset = (offset + 1) % (utils.leds.size() * 2);
+    }
     int i = offset;
     for(LedPixel led_pixel : utils.leds) {
       if (i <= 0 || i > utils.leds.size()) {
@@ -76,6 +81,43 @@ public class LetterWriter extends PointEffect {
     }
   }
 }
+
+public class BulbChaser extends PointEffect {
+  float[] led_luminosity;
+  int sub_frame;
+  int frame_delay;
+  BulbChaser(EffectUtils utils)
+  {
+    super(utils);
+    led_luminosity = new float[utils.leds.size()];
+    for(int i = 0; i < led_luminosity.length; i++) {
+      led_luminosity[i] = 0;
+    }
+    sub_frame = 0;
+    frame_delay = 0;
+  }
+  
+  void render() {
+    frame_delay = (frame_delay + 1) % 10;
+    if (frame_delay == 0) {
+      sub_frame++;
+    }
+    int s = sub_frame;
+    int i = 0;
+    for(LedPixel led_pixel : utils.leds) {
+      if (s % 3 == 0) {
+        led_luminosity[i] = 0.0; // Math.max(0, led_luminosity[i] - 0.4);
+      } else {
+        led_luminosity[i] = 1.0;
+      }  
+      led_pixel.col = Color.HSBtoRGB(36.0 / 255.0, 1.0, led_luminosity[i]);
+      s++;
+      i++;
+    }
+  }
+}
+
+
 
 
 
