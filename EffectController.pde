@@ -6,7 +6,10 @@ public class EffectController {
   Shapes shapes;
   OPC opc;
   Simulation simulation = null;
+  final int FRAME_RATE = 60;
+  final int EFFECT_DURATION_S = 30;   // Seconds between cycling effects
   int frame_num = 0;
+  int effect_duration_cnt = 0;
   List<IEffect> effects;
   Iterator<IEffect> effect_iterator;
   IEffect current_effect = null;
@@ -34,6 +37,7 @@ public class EffectController {
   
   public void cycleToNextEffect()
   {
+    effect_duration_cnt = EFFECT_DURATION_S * FRAME_RATE;
     if (!effect_iterator.hasNext()) {
       effect_iterator = effects.iterator();
     }
@@ -44,8 +48,7 @@ public class EffectController {
   public void renderEffects()
   {
     effect_utils.incrementFrameNum();
-    int effect_duration_s = 30;
-    if (effect_utils.frame_num % (60 * effect_duration_s) == 0) {
+    if(effect_duration_cnt-- <= 0) {
       cycleToNextEffect();
     }
     current_effect.render();
