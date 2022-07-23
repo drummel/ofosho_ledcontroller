@@ -89,7 +89,7 @@ public class ShapeFileParser {
         LedPixel pixel = new LedPixel();
         pixel.shape_position = new PVector(led_x, led_y);
         pixel.opc_index = opc_index_base + i;
-        pixel.col = 0;
+        pixel.col = color(0, 0, 0);
         leds.add(pixel);
       } catch (Exception e) {
         throw new ShapeParseException("Error parsing LED index: " + i, e);

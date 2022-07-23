@@ -4,7 +4,10 @@
 
 import org.ejml.simple.*; 
 
-// Utility class used to determine the bounds of a set of points
+
+/*
+  Utility class used to determine the bounds of a set of points
+*/
 public class BoundingBox {
   float left, top, right, bottom;
   boolean has_value = false;
@@ -30,26 +33,24 @@ public class BoundingBox {
   }
 }
 
+
+/*
+  Initializes the Shapes data structure.
+*/
 public class InitShapes {
-  public Shapes initializeShapes(OPC opc)
+  public Shapes initializeShapes()
   {
     Shapes shapes = loadShapes();
 
     shapes.world_to_canvas = getWorldToCanvasMatrix(shapes);
     xformLedsToCanvasSpace(shapes);
     
-    for(Shape shape: shapes.shapes) {
-      println("Initializing shape:" + Character.toString(shape.letter));
-      for(LedPixel led_pixel: shape.leds) {
-        opc.led(
-          led_pixel.opc_index,
-          (int)Math.floor(led_pixel.canvas_position.x),
-          (int)Math.floor(led_pixel.canvas_position.y)
-        );
-        led_pixel.col = color(0);
+    shapes.all_leds = new ArrayList<LedPixel>();
+    for(Shape shape : shapes.shapes) {
+      for(LedPixel led: shape.leds) {
+        shapes.all_leds.add(led);
       }
     }
-    
     return shapes;
   }
   

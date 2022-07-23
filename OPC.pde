@@ -30,7 +30,7 @@ public class OPC implements Runnable
     thread = new Thread(this);
     thread.start();
     this.enableShowLocations = true;
-    parent.registerMethod("draw", this);
+    parent.registerMethod("draw", this); // Run this.draw() when the main code's "draw()" function has finished.
   }
 
   // Set the location of a single LED
@@ -232,7 +232,8 @@ public class OPC implements Runnable
       return;
     }
     /**
-     Commented out by James because we want to draw even if we can't connect to the FadeCandy server.
+     Commented out by James because we want to draw the locations of the LEDs in the window
+     even if we can't connect to the FadeCandy server.
       if (output == null) {
         return;
       }
@@ -254,7 +255,7 @@ public class OPC implements Runnable
       ledAddress += 3;
 
       if (enableShowLocations) {
-        pixels[pixelLocation] = 0xFFFFFF ^ pixel;
+        pixels[pixelLocation] = 0xFFFFFF ^ pixel; // Invert the color of the main window's pixel in the LED's location
       }
     }
 

@@ -1,14 +1,22 @@
+/*
+ This class manages the virtual canvas that the fire effect uses. See initFrame for an explanation
+ of how the effect works.
+*/
 public class Fire {
   double intensity[][];
   color[] palette;
-  final int FIRE_WIDTH = CANVAS_WIDTH / 4;
-  final int FIRE_HEIGHT = CANVAS_HEIGHT / 4;
+  int canvas_width, canvas_height;
+  int fire_width, fire_height;
   
-  Fire()
+  Fire(int canvas_width, int canvas_height)
   {
-    intensity = new double[FIRE_HEIGHT][FIRE_WIDTH];
-    for(int y = 0; y < FIRE_HEIGHT; y++) {
-      for(int x = 0; x < FIRE_WIDTH; x++) {
+    this.canvas_width = canvas_width;
+    this.canvas_height = canvas_height;
+    this.fire_width = canvas_width / 4;
+    this.fire_height = canvas_height / 4;
+    intensity = new double[fire_height][fire_width];
+    for(int y = 0; y < fire_height; y++) {
+      for(int x = 0; x < fire_width; x++) {
         intensity[y][x] = 0;
       }
     }
@@ -24,19 +32,22 @@ public class Fire {
   }
   
   void initFrame() {
-    for(int x = 0; x < FIRE_WIDTH; x++) {
-      intensity[FIRE_HEIGHT - 1][x] = Math.random() * 256.0;
+    // We write random high intensity values to the bottom row of the grid (the "fire").
+    for(int x = 0; x < fire_width; x++) {
+      intensity[fire_height - 1][x] = Math.random() * 256.0;
     }
-   
-    for(int y = 0; y < FIRE_HEIGHT - 1; y++) {
-      for(int x = 1; x < FIRE_WIDTH - 1; x++) {
+ 
+    // This pixels in each row above the "fire" is the average of its neighboring pixels. This
+    // naturally attenuates the intensity the higher we go.
+    for(int y = 0; y < fire_height - 1; y++) {
+      for(int x = 1; x < fire_width - 1; x++) {
         intensity[y][x] =
           (
             //intensity[y][x] +
             intensity[y+1][x-1] +
             intensity[y+1][x] +
             intensity[y+1][x+1] +
-            intensity[(y+2) % FIRE_HEIGHT][x]
+            intensity[(y+2) % fire_height][x]
           ) / 4.08;
       }
     }
@@ -44,44 +55,52 @@ public class Fire {
   
   // X Y of the canvas
   color getColorAtXY(int x, int y) {
-    int fx = (int)(x * FIRE_WIDTH / CANVAS_WIDTH);
-    int fy = (int)(y * FIRE_HEIGHT / CANVAS_HEIGHT);
+    int fx = (int)(x * fire_width / canvas_width);
+    int fy = (int)(y * fire_height / canvas_height);
     return palette[(int)intensity[fy][fx]];
   }
 }
 
+
+/*
+ This effect renders the Fire effect to the entire canvas by copying
+ it from the virtual canvas in Fire().
+*/
 public class FireCanvasEffect extends CanvasEffect {
   Fire fire;
-  FireCanvasEffect(EffectUtils utils, Fire fire)
+  FireCanvasEffect(Fire fire)
   {
-    super(utils);
+    super();
     this.fire = fire;
   }
   
-  void render() {
+  void render(CanvasPainter painter, Shapes shapes, int frame_num) {
     fire.initFrame();
-    utils.loadPixels();
-    for(int y = 0 ; y < CANVAS_HEIGHT; y++) {
-      for(int x = 0; x < CANVAS_WIDTH; x++) {
-        utils.setPixel(x, y, fire.getColorAtXY(x, y));
+    for(int y = 0 ; y < painter.canvas_height; y++) {
+      for(int x = 0; x < painter.canvas_width; x++) {
+        painter.setPixel(x, y, fire.getColorAtXY(x, y));
       }
     }
-    utils.updatePixels();
   }
 }
 
+
+/*
+  This effect renders the Fire class's effect to only the points used by the LEDs.
+  It's computationally cheaper (marginally) than the Canvas version.
+*/
 public class FirePointEffect extends PointEffect {
   Fire fire;
-  FirePointEffect(EffectUtils utils, Fire fire)
+  FirePointEffect(Fire fire)
   {
-    super(utils);
+    super();
     this.fire = fire;
   }
   
-  void render() {
+  void render(CanvasPainter painter, Shapes shapes, int frame_num) {
     fire.initFrame();
-    for(LedPixel led_pixel: utils.leds) {
-      led_pixel.col = fire.getColorAtXY((int)led_pixel.canvas_position.x, (int)led_pixel.canvas_position.y);
+    for(LedPixel led_pixel: shapes.all_leds) {
+      painter.setLedPixel(led_pixel, fire.getColorAtXY((int)led_pixel.canvas_position.x, (int)led_pixel.canvas_position.y));
     }
   }
 }

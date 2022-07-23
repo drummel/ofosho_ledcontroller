@@ -6,14 +6,17 @@ public class Simulation {
   final int INTENSITY_MAP_SIZE = 50; // A square grid of pixels, with the LED at the center.
   float[] intensity_map;
   PImage intensity_image;
+  int canvas_width, canvas_height;
   
-  Simulation(Shapes shapes, PlasticMask plastic_mask)
+  Simulation(Shapes shapes, int canvas_width, int canvas_height, PlasticMask plastic_mask)
   {
     this.shapes = shapes;
+    this.canvas_width = canvas_width;
+    this.canvas_height = canvas_height;
     this.plastic_mask = plastic_mask;
     
     initIntensityMap();
-    simulation_window = new SimWindow(this);
+    simulation_window = new SimWindow(this, canvas_width, canvas_height);
   }
   
   public void start()
@@ -59,15 +62,15 @@ public class Simulation {
     
     // All pixels rendered. Now let's apply the mask to blank out the areas that are not covered by plastic.
     canvas.blend(plastic_mask.inverse_mask,
-      0, 0, CANVAS_WIDTH, CANVAS_HEIGHT,
-      0, 0, CANVAS_WIDTH, CANVAS_HEIGHT,
+      0, 0, canvas_width, canvas_height,
+      0, 0, canvas_width, canvas_height,
       SUBTRACT
     );
     
     // Add a hint of where the plastic is.
     canvas.blend(plastic_mask.mask,
-      0, 0, CANVAS_WIDTH, CANVAS_HEIGHT,
-      0, 0, CANVAS_WIDTH, CANVAS_HEIGHT,
+      0, 0, canvas_width, canvas_height,
+      0, 0, canvas_width, canvas_height,
       ADD
     );
   }
@@ -95,16 +98,19 @@ public class Simulation {
 }
 
 public class SimWindow extends PApplet {
-  boolean window_location_set = false;
+  boolean is_window_positioned = false;
   Simulation simulation;
+  int canvas_width, canvas_height;
   
-  SimWindow(Simulation simulation) {
+  SimWindow(Simulation simulation, int canvas_width, int canvas_height) {
     super();
     this.simulation = simulation;
+    this.canvas_width = canvas_width;
+    this.canvas_height = canvas_height;
   }
     
   public void settings() {
-    size(CANVAS_WIDTH, CANVAS_HEIGHT);
+    size(canvas_width, canvas_height);
   }
 
   public void setup() {
@@ -112,10 +118,10 @@ public class SimWindow extends PApplet {
   }
 
   public void draw() {
-    if(!window_location_set) {
-      // Place this side by side with the other window.
-      surface.setLocation(CANVAS_WIDTH, 200);
-      window_location_set = true;
+    if(!is_window_positioned) {
+      // Place this side by side with the main window.
+      surface.setLocation(canvas_width, 200);
+      is_window_positioned = true;
     }
     simulation.render(this);
   }
