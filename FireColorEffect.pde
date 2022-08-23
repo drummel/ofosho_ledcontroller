@@ -2,14 +2,17 @@
  This class manages the virtual canvas that the fire effect uses. See initFrame for an explanation
  of how the effect works.
 */
-public class Fire {
+public class FireColor {
   double intensity[][];
   color[] palette;
   int canvas_width, canvas_height;
   int fire_width, fire_height;
+  int fire_color;
+  String mode;
   
-  Fire(int canvas_width, int canvas_height)
+  FireColor(int canvas_width, int canvas_height, String mode)
   {
+    this.fire_color = round(random(0,256));
     this.canvas_width = canvas_width;
     this.canvas_height = canvas_height;
     this.fire_width = canvas_width / 4;
@@ -23,11 +26,22 @@ public class Fire {
     
     palette = new color[256];
     for(int x = 0; x < palette.length; x++) {
+
       //HSLtoRGB is used to generate colors:
       //Hue goes from 0 to 85: red to yellow
       //Saturation is always the maximum: 255
       //Lightness is 0..255 for x=0..128, and 255 for x=128..255
-      palette[x] = Color.HSBtoRGB(x / (4.5 * 255.0), 1.0, Math.min(1.0, x*2 / 255.0));
+      //palette[x] = Color.HSBtoRGB(x / (4.5 * 255.0), 1.0, Math.min(1.0, x*2 / 255.0));
+      if (mode == "RAINBOW") {
+        this.fire_color = round(random(0,256));
+      } else if (mode == "PURPLE") {
+        this.fire_color = (this.fire_color + round(random(-10,10))) % 256;
+      } else if (mode == "GREEN") {
+        this.fire_color = (this.fire_color + round(random(-30,-40))) % 256;
+      } else if (mode == "PHASING") {
+        this.fire_color = (this.fire_color + round(random(0,8))) % 256;
+      }
+      palette[x] = Color.HSBtoRGB((x + this.fire_color) % 256 / (256.0), 1.0, Math.min(1.0, x*2 / 255.0));
     }
   }
   
@@ -66,9 +80,9 @@ public class Fire {
  This effect renders the Fire effect to the entire canvas by copying
  it from the virtual canvas in Fire().
 */
-public class FireCanvasEffect extends CanvasEffect {
-  Fire fire;
-  FireCanvasEffect(Fire fire)
+public class FireColorCanvasEffect extends CanvasEffect {
+  FireColor fire ;
+  FireColorCanvasEffect(FireColor fire)
   {
     super();
     this.fire = fire;
@@ -89,9 +103,9 @@ public class FireCanvasEffect extends CanvasEffect {
   This effect renders the Fire class's effect to only the points used by the LEDs.
   It's computationally cheaper (marginally) than the Canvas version.
 */
-public class FirePointEffect extends PointEffect {
-  Fire fire;
-  FirePointEffect(Fire fire)
+public class FireColorPointEffect extends PointEffect {
+  FireColor fire;
+  FireColorPointEffect(FireColor fire)
   {
     super();
     this.fire = fire;

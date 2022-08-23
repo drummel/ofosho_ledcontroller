@@ -126,7 +126,37 @@ public class Rainbow extends CanvasEffect {
   }
 }
 
-
+/*
+ Paints the entire canvas with the full color spectrum, moving horizontally.
+*/
+public class RainbowRandom extends CanvasEffect {
+  float hue_offset;
+  float n_renders = 0;
+  
+  RainbowRandom() {
+    this.hue_offset = random(0,1);
+  }
+  
+  void reset() {
+     this.hue_offset = this.hue_offset + random(0,0.02);
+  }
+    
+  void render(CanvasPainter painter, Shapes shapes, int frame_num) {
+    for(int x = 0; x < painter.canvas_width; x++) {
+      float hue = ((frame_num + x) & 0xFF) / 2000.0 + hue_offset;
+      //hue = hue - floor(hue);
+      color col = Color.HSBtoRGB(hue, 1.0, 1.0);
+      for(int y = 0; y < painter.canvas_height; y++) {
+        painter.setPixel(x, y, col);
+      }
+    }
+    this.n_renders++;
+    if (this.n_renders > 1) {
+      this.reset();
+      this.n_renders = 0;
+    }
+  }
+}
 
 
 public class RotatingRainbow extends PointEffect {
@@ -232,6 +262,7 @@ public class LetterCycleEffect extends PointEffect {
   int anim_frame_idx;
   final int INTER_FRAME_DELAY = 15; // Wait this many render() loops before moving onto the next animation frame
   int inter_frame_cnt;
+  float hue;
 
   LetterCycleEffect() {
     // The contents of the string don't matter; the code assumes "<space>" means "letter is off", and anything
@@ -253,11 +284,13 @@ public class LetterCycleEffect extends PointEffect {
       "OFOSHO",
       "      "
     };
+    hue = random(0, 1);
   }
 
   void reset(Shapes shapes) {
     anim_frame_idx = 0;
     inter_frame_cnt = INTER_FRAME_DELAY;
+    hue = random(0, 1);
   }
 
   void render(CanvasPainter painter, Shapes shapes, int frame_num) {
@@ -274,7 +307,7 @@ public class LetterCycleEffect extends PointEffect {
       if (anim_letter == ' ') {
         letter_col = color(0, 0, 0);  // Space means turns this letter off
       } else {
-        letter_col = color(255, 255, 60);  // Anything else means letter is on
+        letter_col = Color.HSBtoRGB(hue, 1.0, 1.0);
       }
       for (LedPixel led_pixel: shape.leds) {
         painter.setLedPixel(led_pixel, letter_col);
@@ -285,5 +318,81 @@ public class LetterCycleEffect extends PointEffect {
       anim_frame_idx = (anim_frame_idx + 1) % anim_strings.length;
       inter_frame_cnt = INTER_FRAME_DELAY;
     }
+  }
+}
+
+
+/*
+ Lights up each letter one at a time. When they are all lit, they will flash
+ a couple of times, then the cycle restarts.
+*/
+public class LetterCycleEffect2 extends PointEffect {
+  String[] anim_strings;
+  int anim_frame_idx;
+  final int INTER_FRAME_DELAY = 15; // Wait this many render() loops before moving onto the next animation frame
+  int inter_frame_cnt;
+  float hue;
+
+  LetterCycleEffect2() {
+    // The contents of the string don't matter; the code assumes "<space>" means "letter is off", and anything
+    // else means the letter is  on.
+    anim_strings = new String[] {
+      "      ",
+      "O     ",
+      "     O",
+      " F    ",
+      "    H ",
+      "  O   ",
+      "   S  ",
+      "  O H ",
+      " F S O",
+      "O O H ",
+      "      ",
+      "OFOSHO",
+      "      ",
+      "OFOSHO",
+      "      ",
+      "OFOSHO",
+      "      "
+    };
+    
+    hue = random(0, 1);
+  }
+  
+  
+  void reset(Shapes shapes) {
+    anim_frame_idx = 0;
+    inter_frame_cnt = INTER_FRAME_DELAY;
+    hue = random(0, 1);
+  }
+
+  void render(CanvasPainter painter, Shapes shapes, int frame_num) {
+    int string_idx = 0;
+    color letter_col;
+    String letters_to_show = anim_strings[anim_frame_idx] + "      ";  // ALways add some padding in case someone didn't make the string at least 6 chars long.
+    for (Shape shape: shapes.shapes) {
+      char anim_letter;
+      try {
+        anim_letter = anim_strings[anim_frame_idx].charAt(string_idx++);
+      } catch (StringIndexOutOfBoundsException e) {
+        anim_letter = ' ';
+      }
+      if (anim_letter == ' ') {
+        letter_col = color(0, 0, 0);  // Space means turns this letter off
+      } else {
+        //letter_col = color(60, 255, 60);  // Anything else means letter is on
+        hue = (((hue + 0.04) * 256) % 256)/256;
+        letter_col = Color.HSBtoRGB(hue, 1.0, 1.0);
+      }
+      for (LedPixel led_pixel: shape.leds) {
+        painter.setLedPixel(led_pixel, letter_col);
+      }
+    }
+
+    if (inter_frame_cnt-- <= 0) {
+      anim_frame_idx = (anim_frame_idx + 1) % anim_strings.length;
+      inter_frame_cnt = INTER_FRAME_DELAY;
+    }
+    delay(30);
   }
 }
