@@ -1,4 +1,5 @@
 import java.lang.reflect.*;
+import java.util.Iterator;
 
 public class EffectController {
   PApplet main_window;

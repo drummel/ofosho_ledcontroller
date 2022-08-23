@@ -51,7 +51,7 @@ void setup()
   effects.add(new BlobEffect());
   effects.add(new FireCanvasEffect(fire));
   effects.add(new FirePointEffect(fire));
-  effects.add(new BulbChaser());
+  // effects.add(new BulbChaser());  // Commented out because this effect assumes the LED strings follow the shape of the letters.
   effects.add(new LetterWriter());
   effects.add(new LetterCycleEffect());
   effects.add(new PlasmaPointEffect(plasma));

@@ -4,34 +4,40 @@
 
 import org.ejml.simple.*; 
 
+final float LETTER_WIDTH_INCHES = 20.0;
+final float BLOCK_SIZE_INCHES = LETTER_WIDTH_INCHES / 4.0; // inches. width/height of one plastic "pixel" on the letters.
 
-/*
-  Utility class used to determine the bounds of a set of points
-*/
-public class BoundingBox {
-  float left, top, right, bottom;
-  boolean has_value = false;
-  
-  void addValue(PVector p) {
-    if (!has_value || left > p.x) {
-      left = p.x;
-    }
-    if (!has_value || right < p.x) {
-      right = p.x;
-    }
-    if (!has_value || top < p.y) {
-      top = p.y;
-    }
-    if (!has_value || bottom > p.y) {
-      bottom = p.y;
-    }
-    has_value = true;
-  }
-  
-  String toString() {
-    return "Left: " + left + "  Right: " + right + "  Top: " + top + "  Bottom: " + bottom;
-  }
-}
+
+char[] letter_names = { 'O', 'F', 'O', 'S', 'H', 'O' };  // Mainly used for debugging
+float[] letter_x_offsets_inches = {
+  // Where each letter is positioned horizontally in the physical world (in inches)
+  0.0, // O
+  22.0, // F
+  44.0, // O
+  66.0, // S
+  88.0, // H
+  110.0, // O
+};
+String[] pixel_masks = {
+  // Used in the simulator to place a crude shape of the letter. Each string is a flattened 4x6 pixel representation of an
+  // OFOSHO letter (reading in the same order as the LEDs, i.e. start at bottom right moving left, then up, right 4 LEDs, up, left, etc.
+  // X means pixel on, _ means pixel off.
+  "_XX_ X__X X__X X__X X__X _XX_", // O
+  "___X X___ ___X XXXX ___X XXXX", // F
+  "_XX_ X__X X__X X__X X__X _XX_", // O
+  "_XXX ___X X___ _XX_ ___X _XXX", // S
+  "X__X X__X X__X XXXX X__X X__X", // H
+  "_XX_ X__X X__X X__X X__X _XX_", // O
+};
+int[] letter_opc_base_id = {
+  // The OPC ID of the first pixel in each letter.
+  0,   // O
+  24,  // F
+  48,  // O
+  72,  // S
+  96,  // H
+  120, // O
+};
 
 
 /*
@@ -40,7 +46,12 @@ public class BoundingBox {
 public class InitShapes {
   public Shapes initializeShapes()
   {
-    Shapes shapes = loadShapes();
+    Shapes shapes = new Shapes();
+    shapes.scale = 0.9;
+    shapes.shapes = new ArrayList();
+    for(int i = 0; i < 6; i++) {
+      shapes.shapes.add(createShape(i));
+    }
 
     shapes.world_to_canvas = getWorldToCanvasMatrix(shapes);
     xformLedsToCanvasSpace(shapes);
@@ -54,18 +65,59 @@ public class InitShapes {
     return shapes;
   }
   
-  protected Shapes loadShapes()
+  protected Shape createShape(int shape_index)
   {
-    try {
-      return (new ShapeFileParser()).parseFile("shape_description.json");
-    } catch (ShapeParseException e) {
-      println(e);
-      println(e.getCause());
-      System.exit(1);
-      // This is just here to satisfy the compiler
-      return new Shapes();
+    Shape shape = new Shape();
+    shape.letter = letter_names[shape_index];
+    shape.world_offset = new PVector(letter_x_offsets_inches[shape_index], 0.0);
+    shape.rotation = 0.0;
+
+    // Each string of LEDs is arranged in the following pattern, looking at the front:
+    //
+    // X----X----X----X (23)
+    // |
+    // X----X----X----X (16)
+    //                |
+    // X----X----X----X (15)
+    // |
+    // X----X----X----X (8)
+    //                |
+    // X----X----X----X (7)
+    // |
+    // X----X----X----X (0)
+    //
+    // This code will generate the LEDs in those positions, relative to the letter's own coordinate system. (+X is right, +Y is up)
+    // These are later translated into the world coordinate system.
+    int opc_index_base = letter_opc_base_id[shape_index];
+    shape.leds = new ArrayList();
+    float y_position = 0.0;
+    float x_position = LETTER_WIDTH_INCHES;   // Start on the right
+    float x_direction = -1.0;  // Start out moving left.
+    int col_count = 0;
+    int pixel_mask_idx = 0;
+    for(int i = 0; i < 24; i++) { // 24 LEDs in each string
+      LedPixel pixel = new LedPixel();
+      pixel.shape_position = new PVector(x_position, y_position);
+      pixel.opc_index = opc_index_base + i;
+      pixel.col = color(0, 0, 0);
+      while(pixel_masks[shape_index].charAt(pixel_mask_idx) == ' ') { // Skip spaces added to make the string more legible
+        pixel_mask_idx++;
+      }
+      pixel.is_visible = (pixel_masks[shape_index].charAt(pixel_mask_idx++) == 'X');
+
+      shape.leds.add(pixel);
+
+      if (++col_count >= 4) { // 4 LEDs per row, so when we reach 4 we move to the next row and switch direction.
+        col_count = 0;
+        x_direction = -x_direction;
+        y_position += LETTER_WIDTH_INCHES / 4.0;
+      } else {
+        x_position += x_direction * (LETTER_WIDTH_INCHES / 4.0);
+      }
     }
+    return shape;
   }
+
 
   protected SimpleMatrix getWorldToCanvasMatrix(Shapes shapes) {
     BoundingBox world_bounding_box = getWorldBoundingBox(shapes);
@@ -120,23 +172,16 @@ public class InitShapes {
   }
     
   protected BoundingBox getWorldBoundingBox(Shapes shapes) {  
-    // Find the world_coords bounding box
+    // Find a bounding box that contains all the shapes.
     BoundingBox bounding_box = new BoundingBox();
 
     for(Shape shape: shapes.shapes) {
       SimpleMatrix shape_to_world = shape.getShapeToWorldMatrix();
       
+      // Calculate the world coords of each pixel in the shape, and merge it with the current bounding box.
       for(LedPixel pixel: shape.leds) {
         PVector world_coords = LinearXforms.multMatrixByPVector(shape_to_world, pixel.shape_position);
         bounding_box.addValue(world_coords);
-      }
-
-      // Also do the same for the 4 corners of the shape.
-      for(int x = 0; x <= GRID_WIDTH; x += GRID_WIDTH) {
-        for(int y = 0; y <= GRID_HEIGHT; y += GRID_HEIGHT) {   
-          PVector world_coords = LinearXforms.multMatrixByPVector(shape_to_world, new PVector(x * BLOCK_SIZE, y * BLOCK_SIZE));
-          bounding_box.addValue(world_coords);
-        }
       }
     }
     return bounding_box;

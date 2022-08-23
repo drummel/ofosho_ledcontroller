@@ -21,27 +21,29 @@ public class PlasticMask {
     for(Shape shape: shapes.shapes) {
       SimpleMatrix shape_to_world = shape.getShapeToWorldMatrix();
       SimpleMatrix shape_to_canvas = shapes.world_to_canvas.mult(shape_to_world);
-      for(int y = 0; y < GRID_HEIGHT; y++) {
-        for(int x = 0; x < GRID_WIDTH; x++) {
-          if(!shape.grid[y][x]) {
-            continue;
-          }
-          PVector[] quad_points = new PVector[4];
-          for(int yy = 0; yy < 2; yy++) {
-            for(int xx = 0; xx < 2; xx++) {
-              quad_points[yy * 2 + xx] = LinearXforms.multMatrixByPVector(
-                shape_to_canvas,
-                new PVector((x + xx) * BLOCK_SIZE, (y + yy) * BLOCK_SIZE)
-              );
-            }
-          }
-          mask.quad(
-            quad_points[0].x, quad_points[0].y,
-            quad_points[1].x, quad_points[1].y,
-            quad_points[3].x, quad_points[3].y,
-            quad_points[2].x, quad_points[2].y
-          );
+      for(LedPixel led_pixel: shape.leds) {
+        if(!led_pixel.is_visible) {
+          continue;
         }
+        // Create a rectangle centered around the LED pixel, of size BLOCK_SIZE_INCHES
+        PVector[] quad_points = new PVector[4];
+        for(int yy = 0; yy < 2; yy++) {
+          for(int xx = 0; xx < 2; xx++) {
+            quad_points[yy * 2 + xx] = LinearXforms.multMatrixByPVector(
+              shape_to_canvas,
+              new PVector(
+                led_pixel.shape_position.x + BLOCK_SIZE_INCHES * xx - BLOCK_SIZE_INCHES / 2.0,
+                led_pixel.shape_position.y + BLOCK_SIZE_INCHES * yy - BLOCK_SIZE_INCHES / 2.0
+              )
+            );
+          }
+        }
+        mask.quad(
+          quad_points[0].x, quad_points[0].y,
+          quad_points[1].x, quad_points[1].y,
+          quad_points[3].x, quad_points[3].y,
+          quad_points[2].x, quad_points[2].y
+        );
       }
     }
     mask.endDraw();
