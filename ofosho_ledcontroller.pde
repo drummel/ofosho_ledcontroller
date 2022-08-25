@@ -21,7 +21,8 @@ void settings() {
 
 void setup()
 {
-  println("Setting up the Russell brand OFOSHO sign controller...");
+  println("Setting up the Russell brand OFOSHO sign controller.");
+  println("Using Fadecandy Server at: " + FADECANDY_HOST + ":" + FADECANDY_PORT);
   // This is commented out as it's not normally supposed to be run. We add it in here just for convenience because
   // Processing makes it harder to make multiple application entry points. If it's uncommented, it just generates
   // a basic shapes_description.json file and exits immediately.
