@@ -1,0 +1,14 @@
+[Unit]
+Description=OFOSHO Sign Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/xvfb-run /home/drummel/ofosho_ledcontroller/application.linux/ofosho_ledcontroller 
+WorkingDirectory=/home/drummel/
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
