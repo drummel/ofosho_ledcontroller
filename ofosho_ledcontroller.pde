@@ -4,7 +4,7 @@
 
 // Set this to false to disable opening the Simulation window. This window is not
 // necessary when running on the Raspberry Pi, it just consumes more CPU.
-final boolean IS_SIMULATION_ENABLED = false;
+final boolean IS_SIMULATION_ENABLED = true;
 final String FADECANDY_HOST = "192.168.1.125";
 final int FADECANDY_PORT = 7890;
 final int CANVAS_WIDTH = 640;
@@ -54,8 +54,9 @@ void setup()
   FireColor fire_phasing = new FireColor(CANVAS_WIDTH, CANVAS_HEIGHT, "PHASING");
 
   List<IEffect> effects = new ArrayList<IEffect>();
+  effects.add(new SuperRotatingRainbow2());
   effects.add(new BlobEffect());
-  effects.add(new FireCanvasEffect(fire));
+  //effects.add(new FireCanvasEffect(fire));
   effects.add(new PlasmaCanvasEffect(plasma));
   effects.add(new FireColorCanvasEffect(fire_rainbow));
   //effects.add(new FirePointEffect(fire));
@@ -67,6 +68,7 @@ void setup()
   effects.add(new RainbowRandom());
   effects.add(new FireColorCanvasEffect(fire_phasing));
   effects.add(new PlasmaPointEffect(plasma));
+  effects.add(new SuperRotatingRainbow1());
   effects.add(new Rainbow());
   effects.add(new LetterCycleEffect2());
   //effects.add(new FireColorCanvasEffect(fire_green));
