@@ -175,6 +175,38 @@ public class RotatingRainbow extends PointEffect {
 }
 
 
+public class SuperRotatingRainbow1 extends PointEffect {
+  void render(CanvasPainter painter, Shapes shapes, int frame_num) {
+    float angle = (float)Math.PI * 2.0 * (frame_num / -100.0);
+    SimpleMatrix xform =
+        LinearXforms.rotate(angle)
+        .mult(LinearXforms.translate(-painter.canvas_width / 2.0, -painter.canvas_height / 2.0)
+        );
+        
+    for(LedPixel led_pixel: shapes.all_leds) {
+      PVector new_pos = LinearXforms.multMatrixByPVector(xform, led_pixel.canvas_position);
+      painter.setLedPixel(led_pixel, Color.HSBtoRGB(((int)(frame_num + new_pos.x) & 0xFF) / 1500.0 + 0.6, 1.0, 1.0));
+    }
+  }
+}
+
+
+public class SuperRotatingRainbow2 extends PointEffect {
+  void render(CanvasPainter painter, Shapes shapes, int frame_num) {
+    float angle = (float)Math.PI * 2.0 * (frame_num / 200.0);
+    SimpleMatrix xform =
+        LinearXforms.rotate(angle)
+        .mult(LinearXforms.translate(-painter.canvas_width / 2.0, -painter.canvas_height / 2.0)
+        );
+        
+    for(LedPixel led_pixel: shapes.all_leds) {
+      PVector new_pos = LinearXforms.multMatrixByPVector(xform, led_pixel.canvas_position);
+      painter.setLedPixel(led_pixel, Color.HSBtoRGB(((int)(frame_num + new_pos.x) & 0xFF) / 1500.0, 1.0, 1.0));
+    }
+  }
+}
+
+
 /*
  Displays a large dot image on the canvas, centered at the mouse's current location.
 */
