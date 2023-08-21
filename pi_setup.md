@@ -9,6 +9,20 @@ sudo apt install xvfb
 sudo apt install git
 ```
 
+# Do some hacky fadecandy install
+
+https://groups.google.com/g/fadecandy/c/Xrf6Y8f16Dw
+
+`````bash
+sudo apt install build-essential g++
+
+sudo git clone --recursive https://github.com/scanlime/fadecandy.git
+cd fadecandy/server
+make
+
+
+
+
 # Copy the ssh keys from 1password
 
 ```bash
@@ -40,17 +54,30 @@ tar xvfz processing-*
 sudo cat ./setup/append_to_wpa_supplicant.conf >> /etc/wpa_supplicant/wpa_supplicant.conf
 ```
 
-# Install the service
+# Install the services Sign and Fade Candy Server
 
 ````bash
 sudo cp ./setup/ofosho_sign.service /etc/systemd/system/ofosho_sign.service
+sudo chmod 644 /etc/systemd/system/ofosho_sign.service
 sudo systemctl daemon-reload
 sudo systemctl enable ofosho_sign.service
 sudo systemctl start ofosho_sign.service
 
 # Get the status of the service
 ```bash
-sudo systemctl status altar-of-oba.service
+sudo systemctl status ofosho_sign.service
+`````
+
+````bash
+sudo cp ./setup/fade_candy_server.service /etc/systemd/system/fade_candy_server.service
+sudo chmod 644 /etc/systemd/system/fade_candy_server.service
+sudo systemctl daemon-reload
+sudo systemctl enable fade_candy_server.service
+sudo systemctl start fade_candy_server.service
+
+# Get the status of the service
+```bash
+sudo systemctl status fade_candy_server.service
 ````
 
 ## Restart the raspberry pi

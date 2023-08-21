@@ -5,7 +5,8 @@
 // Set this to false to disable opening the Simulation window. This window is not
 // necessary when running on the Raspberry Pi, it just consumes more CPU.
 final boolean IS_SIMULATION_ENABLED = true;
-final String FADECANDY_HOST = "192.168.1.125";
+// final String FADECANDY_HOST = "192.168.1.125";
+final String FADECANDY_HOST = "127.0.0.1"; // Try out localhost
 final int FADECANDY_PORT = 7890;
 final int CANVAS_WIDTH = 640;
 final int CANVAS_HEIGHT = 200;
