@@ -1,6 +1,7 @@
 [Unit]
 Description=OFOSHO Sign Service
 After=network.target
+After=fade_candy_server.service
 
 [Service]
 ExecStart=/usr/bin/xvfb-run /home/drummel/ofosho_ledcontroller/application.linux/ofosho_ledcontroller 
@@ -9,6 +10,9 @@ StandardOutput=inherit
 StandardError=inherit
 Restart=always
 User=root
+
+# Needs the fadecandy server
+
 
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=FadeCandy Server
+After=network.target
+
+[Service]
+ExecStart=/home/drummel/fadecandy/server/fcserver /home/drummel/ofosho_ledcontroller/fcserver_config.json 
+WorkingDirectory=/home/drummel/
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
