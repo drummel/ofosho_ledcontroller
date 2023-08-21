@@ -57,18 +57,6 @@ sudo cat ./setup/append_to_wpa_supplicant.conf >> /etc/wpa_supplicant/wpa_suppli
 # Install the services Sign and Fade Candy Server
 
 ````bash
-sudo cp ./setup/ofosho_sign.service /etc/systemd/system/ofosho_sign.service
-sudo chmod 644 /etc/systemd/system/ofosho_sign.service
-sudo systemctl daemon-reload
-sudo systemctl enable ofosho_sign.service
-sudo systemctl start ofosho_sign.service
-
-# Get the status of the service
-```bash
-sudo systemctl status ofosho_sign.service
-`````
-
-````bash
 sudo cp ./setup/fade_candy_server.service /etc/systemd/system/fade_candy_server.service
 sudo chmod 644 /etc/systemd/system/fade_candy_server.service
 sudo systemctl daemon-reload
@@ -79,6 +67,18 @@ sudo systemctl start fade_candy_server.service
 ```bash
 sudo systemctl status fade_candy_server.service
 ````
+
+````bash
+sudo cp ./setup/ofosho_sign.service /etc/systemd/system/ofosho_sign.service
+sudo chmod 644 /etc/systemd/system/ofosho_sign.service
+sudo systemctl daemon-reload
+sudo systemctl enable ofosho_sign.service
+sudo systemctl start ofosho_sign.service
+
+# Get the status of the service
+```bash
+sudo systemctl status ofosho_sign.service
+`````
 
 ## Restart the raspberry pi
 
