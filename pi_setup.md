@@ -55,6 +55,7 @@ sudo cat ./setup/append_to_wpa_supplicant.conf >> /etc/wpa_supplicant/wpa_suppli
 ```
 
 # Install the services Sign and Fade Candy Server
+# Note: device sn is: UUSOBDOGVZMFCTSF
 
 ````bash
 sudo cp ./setup/fade_candy_server.service /etc/systemd/system/fade_candy_server.service
@@ -79,6 +80,13 @@ sudo systemctl start ofosho_sign.service
 ```bash
 sudo systemctl status ofosho_sign.service
 `````
+
+# Note: Switched to running the code so i can edit the ip address
+
+From:
+ExecStart=/usr/bin/xvfb-run /home/drummel/ofosho_ledcontroller/application.linux/ofosho_ledcontroller
+To:
+ExecStart=/usr/bin/xvfb-run /home/drummel/processing-4.3/processing--jave --sketch=/home/drummel/ofosho_ledcontroller --run
 
 ## Restart the raspberry pi
 
