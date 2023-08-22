@@ -11,8 +11,5 @@ StandardError=inherit
 Restart=always
 User=root
 
-# Needs the fadecandy server
-
-
 [Install]
 WantedBy=multi-user.target
